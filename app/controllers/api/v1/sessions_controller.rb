@@ -1,16 +1,17 @@
 module Api 
     module V1 
       class SessionsController < ApplicationController 
+        protect_from_forgery with: :null_session
         def index 
         sessions = Session.all
 
-        render json: SessionSerializer.new(sessions).serialized_json
+        render json: SessionSerializer.new(sessions, options).serialized_json
         end 
 
         def show 
           session = Session.find_by(slug: params[:slug])  
 
-          render json: SessionSerializer.new(session).serialized_json
+          render json: SessionSerializer.new(session, options).serialized_json
         end 
 
         def create 
@@ -27,7 +28,7 @@ module Api
             session = Session.find_by(slug: params[:slug])
 
             if session.update(session_params)
-                render json: SessionSerializer.new(session).serialized_json
+                render json: SessionSerializer.new(session, options).serialized_json
             else
                 render json: { error: session.errors.messages }, status: 422
             end 
@@ -48,6 +49,9 @@ module Api
         def session_params
             params.require(:session).permit(:name, :image_url)
         end 
+
+        def options
+            @options ||= { include: %i[reviews] }
       end 
     end
 end 
